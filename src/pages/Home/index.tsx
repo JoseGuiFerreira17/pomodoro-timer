@@ -1,4 +1,7 @@
 import { Play } from 'phosphor-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as zod from 'zod'
 import {
   CountButton,
   CountContainer,
@@ -9,10 +12,38 @@ import {
   TaskInput,
 } from './styles'
 
+interface CycleFormData {
+  task: string
+  timer: number
+}
+
 export function Home() {
+  const { handleSubmit, register, watch, reset } = useForm<CycleFormData>({
+    resolver: zodResolver(
+      zod.object({
+        task: zod.string().min(3, 'Nome do projeto muito curto'),
+        timer: zod
+          .number()
+          .int()
+          .min(5, 'Tempo mínimo é 5 minutos')
+          .max(60, 'Tempo máximo é 60 minutos'),
+      })
+    ),
+    defaultValues: {
+      task: '',
+      timer: 0,
+    },
+  })
+
+  function handleCreateNewCycle(data: CycleFormData) {
+    reset()
+  }
+
+  const task = watch('task')
+
   return (
     <HomeContainer>
-      <form>
+      <form onSubmit={handleSubmit(handleCreateNewCycle)}>
         <ForContainer>
           <label htmlFor="task">Vou trabalhar em</label>
           <TaskInput
@@ -20,6 +51,7 @@ export function Home() {
             type="text"
             list="task-suggestions"
             placeholder="Dê um nome ao seu projeto"
+            {...register('task')}
           />
           <datalist id="task-suggestions">
             <option value="List" />
@@ -34,6 +66,7 @@ export function Home() {
             step={5}
             max={60}
             min={5}
+            {...register('timer', { valueAsNumber: true })}
           />
           <span>minutos</span>
         </ForContainer>
@@ -45,7 +78,7 @@ export function Home() {
           <span>0</span>
         </CountContainer>
 
-        <CountButton type="submit">
+        <CountButton type="submit" disabled={!task}>
           <Play size={24} />
           Começar
         </CountButton>
