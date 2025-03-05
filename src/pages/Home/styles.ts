@@ -83,7 +83,7 @@ export const Separator = styled.div`
   justify-content: center;
 `
 
-export const CountButton = styled.button`
+const BaseButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,8 +94,15 @@ export const CountButton = styled.button`
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  background: ${(props) => props.theme['green-500']};
   color: ${(props) => props.theme['gray-100']};
+`
+
+export const StopCountButton = styled(BaseButton)`
+  background: ${(props) => props.theme['red-500']};
+`
+
+export const CountButton = styled(BaseButton)`
+  background: ${(props) => props.theme['green-500']};
 
   &:not(:disabled):hover {
     background: ${(props) => props.theme['green-700']};
