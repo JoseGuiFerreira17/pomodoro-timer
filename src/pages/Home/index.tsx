@@ -26,6 +26,7 @@ interface Cycle {
   timer: number
   startDate: Date
   inetrrupedDate?: Date
+  finishedDate?: Date
 }
 
 export function Home() {
@@ -51,18 +52,41 @@ export function Home() {
   })
 
   const activeCycle = cycles.find((cycle) => cycle.id === currentCycle)
+  const totalSeconds = activeCycle ? activeCycle.timer * 60 : 0
 
   useEffect(() => {
     let interval: number
     if (activeCycle) {
       interval = setInterval(() => {
-        setElapsedTime(differenceInSeconds(new Date(), activeCycle.startDate))
+        const secondsDifference = differenceInSeconds(
+          new Date(),
+          activeCycle.startDate
+        )
+        if (secondsDifference >= totalSeconds) {
+          setCycles((state) =>
+            state.map((cycle) => {
+              if (cycle.id === currentCycle) {
+                return {
+                  ...cycle,
+                  finishedDate: new Date(),
+                }
+              } else {
+                return cycle
+              }
+            })
+          )
+          setElapsedTime(totalSeconds)
+          clearInterval(interval)
+          setCurrentCycle(null)
+        } else {
+          setElapsedTime(secondsDifference)
+        }
       }, 1000)
     }
     return () => {
       clearInterval(interval)
     }
-  }, [activeCycle])
+  }, [activeCycle, totalSeconds, currentCycle, cycles])
 
   function handleCreateNewCycle(data: CycleFormData) {
     const newCycle: Cycle = {
@@ -80,8 +104,8 @@ export function Home() {
   }
 
   function handleInterruptCycle() {
-    setCycles(
-      cycles.map((cycle) => {
+    setCycles((state) =>
+      state.map((cycle) => {
         if (cycle.id === currentCycle) {
           return {
             ...cycle,
@@ -95,7 +119,6 @@ export function Home() {
     setCurrentCycle(null)
   }
 
-  const totalSeconds = activeCycle ? activeCycle.timer * 60 : 0
   const currentSeconds = activeCycle ? totalSeconds - elapsedTime : 0
 
   const minutesAmount = Math.floor(currentSeconds / 60)
@@ -105,10 +128,10 @@ export function Home() {
   const seconds = String(secondsAmount).padStart(2, '0')
 
   useEffect(() => {
-    if (activeCycle) {
+    if (currentCycle) {
       document.title = `${minutes}:${seconds}`
     }
-  }, [minutes, seconds, activeCycle])
+  }, [minutes, seconds, currentCycle])
 
   const task = watch('task')
 
